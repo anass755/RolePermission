@@ -9,15 +9,13 @@ class CountryRequest
 {
     public function rules(): array
     {
-        $countryId = request()->route('country') ? request()->route('country')->id : null;
-        
         return [
             'name' => [
                 'required',
                 'string', 
                 'max:255',
                 'min:2',
-                Rule::unique('countries', 'name')->ignore($countryId)
+                Rule::unique('countries', 'name')->ignore(request()->route('country'))
             ],
             'status' => [
                 'required',
