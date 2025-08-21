@@ -7,7 +7,8 @@ use App\Http\Controllers\{
     ProductController,
     PermissionGroupController,
     PermissionController,
-    UserController
+    UserController,
+    CountryController
 };
 
 
@@ -33,6 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/assign-permissions/{role}', [RoleController::class, 'storeAssign'])
      ->name('permission.assign.store');
      
+    // Country resource routes
+    Route::resource('countries', CountryController::class);
 
 });
 
