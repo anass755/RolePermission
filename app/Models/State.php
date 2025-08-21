@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\HasReferentialIntegrity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class State extends Model
 {
-    use HasFactory, SoftDeletes, HasReferentialIntegrity;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -38,19 +37,5 @@ class State extends Model
         return $this->hasMany(City::class);
     }
 
-    /**
-     * Define relationships to check for referential integrity
-     */
-    protected function getReferentialIntegrityRelationships(): array
-    {
-        return ['cities'];
-    }
 
-    /**
-     * Check if state has any related cities
-     */
-    public function hasCities()
-    {
-        return $this->cities()->exists();
-    }
 }
