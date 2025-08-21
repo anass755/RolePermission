@@ -3,20 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Models\Country;
-use App\Rules\UniqueCountryName;
-use App\Rules\ValidStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CountryRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -24,6 +15,7 @@ class CountryRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Get country ID for update operations
         $countryId = $this->route('country') ? $this->route('country')->id : null;
         
         return [
@@ -32,12 +24,20 @@ class CountryRequest extends FormRequest
                 'string',
                 'max:255',
                 'min:2',
-                new UniqueCountryName($countryId),
+                function ($attribute, $value, $fail) use ($countryId) {
+                    $query = Country::where('name', $value);
+                    if ($countryId) {
+                        $query->where('id', '!=', $countryId);
+                    }
+                    if ($query->exists()) {
+                        $fail('The country name has already been taken.');
+                    }
+                },
             ],
             'status' => [
                 'required',
                 'integer',
-                new ValidStatus(),
+                'in:0,1'
             ],
         ];
     }
@@ -54,7 +54,6 @@ class CountryRequest extends FormRequest
             'name.string' => 'Country name must be a string.',
             'name.max' => 'Country name cannot exceed 255 characters.',
             'name.min' => 'Country name must be at least 2 characters.',
-            'name.unique' => 'This country name already exists.',
             'status.required' => 'Status is required.',
             'status.integer' => 'Status must be an integer.',
             'status.in' => 'Status must be either 0 (disabled) or 1 (enabled).',

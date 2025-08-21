@@ -3,21 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Models\City;
-use App\Rules\UniqueCityName;
-use App\Rules\ValidStateId;
-use App\Rules\ValidStatus;
+use App\Models\State;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CityRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -25,6 +15,7 @@ class CityRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Get city ID for update operations
         $cityId = $this->route('city') ? $this->route('city')->id : null;
         
         return [
@@ -33,17 +24,37 @@ class CityRequest extends FormRequest
                 'string',
                 'max:255',
                 'min:2',
-                new UniqueCityName($this->input('stateid'), $cityId),
+                function ($attribute, $value, $fail) use ($cityId) {
+                    $query = City::where('name', $value)
+                                ->where('stateid', $this->input('stateid'));
+                    if ($cityId) {
+                        $query->where('id', '!=', $cityId);
+                    }
+                    if ($query->exists()) {
+                        $fail('The city name has already been taken in this state.');
+                    }
+                },
             ],
             'stateid' => [
                 'required',
                 'integer',
-                new ValidStateId(true, true), // Check if state exists, is active, and belongs to active country
+                function ($attribute, $value, $fail) {
+                    $stateExists = State::where('id', $value)
+                                       ->where('status', 1)
+                                       ->whereHas('country', function ($query) {
+                                           $query->where('status', 1);
+                                       })
+                                       ->exists();
+                    
+                    if (!$stateExists) {
+                        $fail('The selected state does not exist or is not active, or belongs to an inactive country.');
+                    }
+                },
             ],
             'status' => [
                 'required',
                 'integer',
-                new ValidStatus(),
+                'in:0,1'
             ],
         ];
     }
@@ -60,10 +71,8 @@ class CityRequest extends FormRequest
             'name.string' => 'City name must be a string.',
             'name.max' => 'City name cannot exceed 255 characters.',
             'name.min' => 'City name must be at least 2 characters.',
-            'name.unique' => 'This city name already exists in the selected state.',
             'stateid.required' => 'State is required.',
             'stateid.integer' => 'State ID must be an integer.',
-            'stateid.exists' => 'Selected state does not exist.',
             'status.required' => 'Status is required.',
             'status.integer' => 'Status must be an integer.',
             'status.in' => 'Status must be either 0 (disabled) or 1 (enabled).',
