@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\State;
+use App\Rules\UniqueStateName;
+use App\Rules\ValidCountryId;
+use App\Rules\ValidStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StateRequest extends FormRequest
 {
@@ -28,21 +31,19 @@ class StateRequest extends FormRequest
             'countryid' => [
                 'required',
                 'integer',
-                'exists:countries,id'
+                new ValidCountryId(true), // Check if country exists and is active
             ],
             'name' => [
                 'required',
                 'string',
                 'max:255',
                 'min:2',
-                Rule::unique('states', 'name')
-                    ->where('countryid', $this->input('countryid'))
-                    ->ignore($stateId),
+                new UniqueStateName($this->input('countryid'), $stateId),
             ],
             'status' => [
                 'required',
                 'integer',
-                'in:0,1'
+                new ValidStatus(),
             ],
         ];
     }

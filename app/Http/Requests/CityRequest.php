@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\City;
+use App\Rules\UniqueCityName;
+use App\Rules\ValidStateId;
+use App\Rules\ValidStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class CityRequest extends FormRequest
 {
@@ -30,19 +33,17 @@ class CityRequest extends FormRequest
                 'string',
                 'max:255',
                 'min:2',
-                Rule::unique('cities', 'name')
-                    ->where('stateid', $this->input('stateid'))
-                    ->ignore($cityId),
+                new UniqueCityName($this->input('stateid'), $cityId),
             ],
             'stateid' => [
                 'required',
                 'integer',
-                'exists:states,id'
+                new ValidStateId(true, true), // Check if state exists, is active, and belongs to active country
             ],
             'status' => [
                 'required',
                 'integer',
-                'in:0,1'
+                new ValidStatus(),
             ],
         ];
     }

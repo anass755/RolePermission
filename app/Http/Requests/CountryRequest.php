@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Country;
+use App\Rules\UniqueCountryName;
+use App\Rules\ValidStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class CountryRequest extends FormRequest
 {
@@ -30,12 +32,12 @@ class CountryRequest extends FormRequest
                 'string',
                 'max:255',
                 'min:2',
-                Rule::unique('countries', 'name')->ignore($countryId),
+                new UniqueCountryName($countryId),
             ],
             'status' => [
                 'required',
                 'integer',
-                'in:0,1'
+                new ValidStatus(),
             ],
         ];
     }
