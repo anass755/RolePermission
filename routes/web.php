@@ -7,7 +7,8 @@ use App\Http\Controllers\{
     ProductController,
     PermissionGroupController,
     PermissionController,
-    UserController
+    UserController,
+    LocationController
 };
 
 
@@ -33,6 +34,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/assign-permissions/{role}', [RoleController::class, 'storeAssign'])
      ->name('permission.assign.store');
      
+    // Location management routes with referential integrity
+    Route::prefix('locations')->name('locations.')->group(function () {
+        // Country routes
+        Route::delete('/countries/{id}', [LocationController::class, 'deleteCountry'])->name('countries.delete');
+        Route::delete('/countries/{id}/force', [LocationController::class, 'forceDeleteCountry'])->name('countries.force-delete');
+        Route::get('/countries/{id}/relationships', [LocationController::class, 'getCountryRelationships'])->name('countries.relationships');
+        Route::delete('/countries/bulk', [LocationController::class, 'bulkDeleteCountries'])->name('countries.bulk-delete');
+        
+        // State routes
+        Route::delete('/states/{id}', [LocationController::class, 'deleteState'])->name('states.delete');
+        Route::delete('/states/{id}/force', [LocationController::class, 'forceDeleteState'])->name('states.force-delete');
+        Route::get('/states/{id}/relationships', [LocationController::class, 'getStateRelationships'])->name('states.relationships');
+        
+        // City routes
+        Route::delete('/cities/{id}', [LocationController::class, 'deleteCity'])->name('cities.delete');
+    });
 
 });
 
