@@ -134,12 +134,11 @@
                                         </a>
                                     @endCanView
                                     @canView('countries-delete')
-                                        <button type="button" 
-                                                class="btn btn-sm btn-outline-danger"
-                                                onclick="deleteLocation({{ $location->id }})">
+                                        <a href="{{route('console.agency.service.location.destroy', ['agency' => $agency->id, 'service' => $service->id, 'location' => $location->id])}}" 
+                                           class="btn btn-sm btn-outline-danger">
                                             <i class="bi bi-trash me-1"></i>
                                             Delete
-                                        </button>
+                                        </a>
                                     @endCanView
                                 </div>
                             </div>
@@ -188,14 +187,5 @@
 
     @push('scripts')
     <script src="{{asset('assets/js/console/countries.js')}}"></script>
-    <script>
-        function deleteLocation(locationId) {
-            if (confirm('Are you sure you want to delete this location?')) {
-                // Add your delete logic here
-                // You might want to submit a form or make an AJAX request
-                console.log('Delete location:', locationId);
-            }
-        }
-    </script>
     @endpush
 </x-app-layout>
